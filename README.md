@@ -47,7 +47,7 @@ cd EduMind-Agentic-Lesson-Preparation
 python -m venv .venv
 .\.venv\Scripts\activate       # Windows PowerShell
 # source .venv/bin/activate        # macOS / Linux
-python -m pip install -e .
+python -m pip install -e ".[test]"
 ```
 
 The runtime has no mandatory network service or model credential.
