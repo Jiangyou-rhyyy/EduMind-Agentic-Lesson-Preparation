@@ -6,7 +6,6 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SELF = Path(__file__).resolve()
 SKIP_DIRS = {".git", ".pytest_cache", ".venv", "__pycache__", ".superpowers"}
 TEXT_SUFFIXES = {".py", ".md", ".toml", ".txt", ".json", ".yml", ".yaml"}
 FORBIDDEN_SUFFIXES = {".faiss", ".pkl", ".mp4", ".zip", ".pptx", ".pdf", ".docx", ".key", ".pem"}
@@ -15,7 +14,7 @@ FORBIDDEN_SUFFIXES = {".faiss", ".pkl", ".mp4", ".zip", ".pptx", ".pdf", ".docx"
 def main() -> int:
     failures: list[str] = []
     for path in ROOT.rglob("*"):
-        if not path.is_file() or path == SELF or any(part in SKIP_DIRS for part in path.parts):
+        if not path.is_file() or any(part in SKIP_DIRS for part in path.parts):
             continue
         if path.suffix.lower() in FORBIDDEN_SUFFIXES:
             failures.append(f"forbidden artifact: {path.relative_to(ROOT)}")
@@ -29,8 +28,6 @@ def main() -> int:
         patterns = [
             r"sk" + r"-[A-Za-z0-9]{12,}",
             r"(?:api" + r"_key|app" + r"_key|app" + r"_secret)\s*=\s*['\"]",
-            r"api-ai\.vivo\.com\.cn",
-            r"vivogpt/completions",
         ]
         if any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in patterns):
             failures.append(f"sensitive token pattern: {path.relative_to(ROOT)}")

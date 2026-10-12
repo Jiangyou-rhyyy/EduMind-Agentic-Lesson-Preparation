@@ -28,7 +28,10 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    store = KnowledgeStore(load_markdown_directory(args.knowledge_dir))
+    try:
+        store = KnowledgeStore(load_markdown_directory(args.knowledge_dir))
+    except FileNotFoundError as exc:
+        build_parser().error(str(exc))
     request = LessonRequest(topic=args.topic, grade=args.grade, duration_minutes=args.duration)
     result = LessonPreparationPipeline(store, DemoProvider()).run(request)
     markdown = plan_to_markdown(result.report)

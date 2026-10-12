@@ -17,6 +17,8 @@ def _tokens(text: str) -> tuple[str, ...]:
 
 
 def load_markdown_directory(directory: Path) -> tuple[KnowledgeChunk, ...]:
+    if not directory.exists() or not directory.is_dir():
+        raise FileNotFoundError(f"knowledge directory does not exist: {directory}")
     chunks: list[KnowledgeChunk] = []
     for path in sorted(directory.glob("*.md")):
         lines = path.read_text(encoding="utf-8").splitlines()

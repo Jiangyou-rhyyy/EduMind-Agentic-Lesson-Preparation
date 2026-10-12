@@ -2,7 +2,7 @@
 
 from typing import Sequence
 
-from .providers import LLMProvider
+from .providers import LLMProvider, ProviderDraft
 from .schemas import (
     LessonPlan,
     LessonRequest,
@@ -23,13 +23,13 @@ class PlannerAgent:
     def plan(
         self, request: LessonRequest, evidence: Sequence[RetrievedEvidence]
     ) -> LessonPlan:
-        draft = self.provider.generate(request, evidence)
+        draft = ProviderDraft.from_mapping(self.provider.generate(request, evidence))
         return LessonPlan(
             request=request,
-            objectives=tuple(draft.get("objectives", ())),
-            sequence=tuple(draft.get("sequence", ())),
-            activities=tuple(draft.get("activities", ())),
-            assessment=tuple(draft.get("assessment", ())),
+            objectives=draft.objectives,
+            sequence=draft.sequence,
+            activities=draft.activities,
+            assessment=draft.assessment,
             evidence=tuple(item.chunk.source_id for item in evidence),
         )
 
@@ -42,10 +42,15 @@ class VerifierAgent:
             checks.append("objectives")
         else:
             warnings.append("No learning objectives were generated.")
-        if plan.sequence:
+        durations = []
+        for step in plan.sequence:
+            marker = step.rsplit("(", 1)[-1].removesuffix(" min)")
+            if marker.isdigit():
+                durations.append(int(marker))
+        if plan.sequence and sum(durations) == plan.request.duration_minutes:
             checks.append("timing")
         else:
-            warnings.append("No lesson sequence was generated.")
+            warnings.append("Lesson sequence timing does not match the requested duration.")
         if plan.activities and plan.assessment:
             checks.append("assessment")
         else:
